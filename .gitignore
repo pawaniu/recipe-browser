@@ -1,0 +1,10 @@
+build/
+out/
+/integration-test/
+/venv/
+target/
+.gradle/
+/gradle/
+.idea/
+~*
+*.pyc
