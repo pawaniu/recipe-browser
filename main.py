@@ -17,13 +17,34 @@ import logging
 import service
 from flask import Flask
 from flask import Flask, send_file, make_response, render_template, request,jsonify, send_from_directory, abort
+from google.cloud import ndb
+
+client = ndb.Client.from_service_account_json('pk-dev-service.json')
+
+
+def ndb_wsgi_middleware(wsgi_app):
+    def middleware(environ, start_response):
+        with client.context():
+            return wsgi_app(environ, start_response)
+
+    return middleware
+
 
 app = Flask(__name__)
+app.wsgi_app = ndb_wsgi_middleware(app.wsgi_app)
+
+
+class Recipe(ndb.Model):
+    name = ndb.StringProperty()
+    url = ndb.StringProperty()
+    description = ndb.StringProperty()
+
 
 
 @app.route('/')
 def hello():
     return render_template('home.html')
+
 
 @app.route('/add-recipe')
 def create():
@@ -45,9 +66,11 @@ def create_task():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+
 @app.route('/api/v1.0/recipes')
 def recipes():
-    resp = make_response(service.recipes_list())
+    recipes = Recipe.query()
+    resp = make_response(str([recipe.to_dict() for recipe in Recipe.query()]))
     resp.status_code = 200
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
@@ -65,5 +88,5 @@ def server_error(e):
 if __name__ == '__main__':
     # This is used when running locally. Gunicorn is used to run the
     # application on Google App Engine. See entrypoint in app.yaml.
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=7000, debug=True)
 # [END gae_flex_quickstart]
