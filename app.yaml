@@ -1,2 +1,1 @@
-service: recipe
 runtime: python37
