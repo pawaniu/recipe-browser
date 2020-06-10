@@ -57,8 +57,9 @@ def create_task():
         abort(400)
     recipe = {
         'name': request.json['name'],
-        'description': request.json.get('description', ""),
-        'url': request.json.get('url', "")
+        'url': request.json.get('url', ""),
+        'description': request.json.get('description', "")
+
     }
     response = service.create_recipe(recipe)
     resp = make_response(response)
@@ -84,6 +85,9 @@ def server_error(e):
     See logs for full stacktrace.
     """.format(e), 500
 
+@app.route('/img/<path:path>')
+def send_js(path):
+    return send_from_directory('img', path)
 
 if __name__ == '__main__':
     # This is used when running locally. Gunicorn is used to run the
